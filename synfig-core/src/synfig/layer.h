@@ -39,6 +39,8 @@
 #include "node.h"
 #include "time.h"
 #include "guid.h"
+#include "surface.h"
+#include "context.h"
 
 /* === M A C R O S ========================================================= */
 
@@ -160,6 +162,7 @@ class ValueNode;
 class ValueBase;
 class Time;
 class Surface;
+class CairoSurface;
 class RendDesc;
 class ProgressCallback;
 class Context;
@@ -512,7 +515,15 @@ public:
 	**	\return \c true on success, \c false on failure
 	**	\see Context::accelerated_render()
 	*/
-	virtual bool accelerated_render(Context context,Surface *surface,int quality, const RendDesc &renddesc, ProgressCallback *cb)const;
+	virtual bool accelerated_render(Context context,Surface *surface, int quality, const RendDesc &renddesc, ProgressCallback *cb)const
+	{ return accelerated_render_<Surface>(context, surface, quality, renddesc, cb); }
+
+	virtual bool accelerated_render(Context /*context*/,CairoSurface */*surface*/,int /*quality*/, const RendDesc &/*renddesc*/, ProgressCallback */*cb*/)const
+	{ return true; }
+	// accelerated_render_<CairoSurface>(context, surface, quality, renddesc, cb); }
+
+	template<class S>
+	bool accelerated_render_(Context context,S *surface,int quality, const RendDesc &renddesc, ProgressCallback *cb)const;
 
 	//! Checks to see if a part of the layer is directly under \a point
 	/*!	\param context		Context iterator referring to next Layer.
@@ -569,6 +580,36 @@ public:
 	static Layer::LooseHandle create(const String &type);
 
 }; // END of class Layer
+
+/* 	The default accelerated renderer
+ **	is anything but accelerated...
+ */
+template <class S>
+bool
+Layer::accelerated_render_(synfig::Context context,S *surface,int /*quality*/, const RendDesc &renddesc, ProgressCallback *cb)  const
+{
+	handle<Target> target=surface_target(surface);
+	if(!target)
+	{
+		if(cb)cb->error(_("Unable to create surface target"));
+		return false;
+	}
+	RendDesc desc=renddesc;
+	target->set_rend_desc(&desc);
+	
+	// When we render, we want to
+	// make sure that we are rendered too...
+	// Since the context iterator is for
+	// the layer after us, we need to back up.
+	// This could be considered a hack, as
+	// it is a possibility that we are indeed
+	// not the previous layer.
+	--context;
+	
+	return render(context,target,desc,cb);
+	//return render_threaded(context,target,desc,cb,2);
+}
+
 
 }; // END of namespace synfig
 

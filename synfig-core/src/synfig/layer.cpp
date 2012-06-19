@@ -37,7 +37,6 @@
 #include "value.h"
 #include "layer_bitmap.h"
 #include "layer_mime.h"
-#include "context.h"
 #include "paramdesc.h"
 
 #include "layer_solidcolor.h"
@@ -534,34 +533,6 @@ synfig::Layer::Handle
 Layer::hit_check(synfig::Context context, const synfig::Point &pos)const
 {
 	return context.hit_check(pos);
-}
-
-/* 	The default accelerated renderer
-**	is anything but accelerated...
-*/
-bool
-Layer::accelerated_render(Context context,Surface *surface,int /*quality*/, const RendDesc &renddesc, ProgressCallback *cb)  const
-{
-	handle<Target> target=surface_target(surface);
-	if(!target)
-	{
-		if(cb)cb->error(_("Unable to create surface target"));
-		return false;
-	}
-	RendDesc desc=renddesc;
-	target->set_rend_desc(&desc);
-
-	// When we render, we want to
-	// make sure that we are rendered too...
-	// Since the context iterator is for
-	// the layer after us, we need to back up.
-	// This could be considered a hack, as
-	// it is a possibility that we are indeed
-	// not the previous layer.
-	--context;
-
-	return render(context,target,desc,cb);
-	//return render_threaded(context,target,desc,cb,2);
 }
 
 String

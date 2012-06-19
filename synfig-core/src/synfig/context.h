@@ -31,6 +31,7 @@
 #include "rect.h"
 #include "renddesc.h"
 #include "surface.h"
+#include "layer.h"
 #include "layer_composite.h"
 #include "general.h"
 
@@ -50,6 +51,7 @@ class CairoSurface;
 class RendDesc;
 class ProgressCallback;
 class Layer;
+class Layer_Composite;
 class Time;
 class Rect;
 
@@ -78,9 +80,8 @@ public:
 	bool accelerated_render(Surface *surface,int quality, const RendDesc &renddesc, ProgressCallback *cb) const
 	{ return accelerated_render_<Surface>(surface, quality, renddesc, cb); }
 
-	bool accelerated_render(CairoSurface */*surface*/,int /*quality*/, const RendDesc &/*renddesc*/, ProgressCallback */*cb*/) const
-	{ return true; }
-	// accelerated_render_<CairoSurface>(surface, quality, renddesc, cb); }
+	bool accelerated_render(CairoSurface *surface,int quality, const RendDesc &renddesc, ProgressCallback *cb) const
+	{ return accelerated_render_<CairoSurface>(surface, quality, renddesc, cb); }
 
 	template<class S>
 	bool accelerated_render_(S *surface,int quality, const RendDesc &renddesc, ProgressCallback *cb) const;
